@@ -71,7 +71,6 @@ public class OrderControllerTest {
     }
 
     @Test
-
     public void testSubmitOrderWithUserNotFound(){
         when(userRepository.findByUsername(this.username1)).thenReturn(null);
 

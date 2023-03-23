@@ -105,4 +105,124 @@ public class CartControllerFunctionalTest {
         assertNotNull(addToCartResponse);
         assertEquals(HttpStatus.NOT_FOUND.value(), addToCartResponse.getStatusCodeValue());
     }
+
+    @Test
+    public void testRemoveFromCart(){
+
+        CreateUserRequest createUserRequest = UserControllerTest.createUserRequest1(
+                this.username1, this.password, this.password);
+        ResponseEntity<User> response = userController.createUser(createUserRequest);
+        User createdUser = response.getBody();
+
+        CreateItemRequest createItemRequest = ItemControllerTest.createItemRequest(this.name, this.description, this.price);
+        ResponseEntity<Item> createItemResponse = itemController.createItem(createItemRequest);
+        Item returnedItem = createItemResponse.getBody();
+
+        ModifyCartRequest modifyCartRequest = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), returnedItem.getId(), 1);
+        ResponseEntity<Cart> addToCartResponse = cartController.addToCart(modifyCartRequest);
+        Cart returnedCart = addToCartResponse.getBody();
+        assertNotNull(returnedCart);
+        assertEquals(1, returnedCart.getItems().size());
+
+        ResponseEntity<Cart> removeFromCartResponse = cartController.removeFromCart(modifyCartRequest);
+        assertNotNull(removeFromCartResponse);
+        assertEquals(HttpStatus.OK.value(), removeFromCartResponse.getStatusCodeValue());
+        Cart returnedCart2 = addToCartResponse.getBody();
+        assertNotNull(returnedCart2);
+        assertEquals(0, returnedCart.getItems().size());
+    }
+
+    @Test
+    public void testRemoveFromCartWithUserNotFound(){
+
+        ModifyCartRequest modifyCartRequest = CartControllerTest.createModifyItemRequest(this.username1, 1l, 1);
+        ResponseEntity<Cart> response = cartController.removeFromCart(modifyCartRequest);
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCodeValue());
+    }
+
+    @Test
+    public void testRemoveFromCartWithItemNotFound(){
+
+        CreateUserRequest createUserRequest = UserControllerTest.createUserRequest1(
+                this.username1, this.password, this.password);
+        ResponseEntity<User> response = userController.createUser(createUserRequest);
+        User createdUser = response.getBody();
+
+        ModifyCartRequest modifyCartRequest = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), 100l, 1);
+        ResponseEntity<Cart> removeFromCartResponse = cartController.removeFromCart(modifyCartRequest);
+        assertNotNull(removeFromCartResponse);
+        assertEquals(HttpStatus.NOT_FOUND.value(), removeFromCartResponse.getStatusCodeValue());
+    }
+
+    @Test
+    public void testRemoveFromCartWithInvalidQuantity(){
+
+        CreateUserRequest createUserRequest = UserControllerTest.createUserRequest1(
+                this.username1, this.password, this.password);
+        ResponseEntity<User> response = userController.createUser(createUserRequest);
+        User createdUser = response.getBody();
+
+        CreateItemRequest createItemRequest = ItemControllerTest.createItemRequest(this.name, this.description, this.price);
+        ResponseEntity<Item> createItemResponse = itemController.createItem(createItemRequest);
+        Item returnedItem = createItemResponse.getBody();
+
+        ModifyCartRequest modifyCartRequest = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), returnedItem.getId(), 1);
+        ResponseEntity<Cart> addToCartResponse = cartController.addToCart(modifyCartRequest);
+        Cart returnedCart = addToCartResponse.getBody();
+        assertNotNull(returnedCart);
+        assertEquals(1, returnedCart.getItems().size());
+
+        ModifyCartRequest modifyCartRequest2 = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), returnedItem.getId(), 0);
+        ResponseEntity<Cart> removeFromCartResponse = cartController.removeFromCart(modifyCartRequest2);
+        assertNotNull(removeFromCartResponse);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), removeFromCartResponse.getStatusCodeValue());
+    }
+
+    @Test
+    public void testRemoveFromCartWithEmptyCart(){
+
+        CreateUserRequest createUserRequest = UserControllerTest.createUserRequest1(
+                this.username1, this.password, this.password);
+        ResponseEntity<User> response = userController.createUser(createUserRequest);
+        User createdUser = response.getBody();
+
+        CreateItemRequest createItemRequest = ItemControllerTest.createItemRequest(this.name, this.description, this.price);
+        ResponseEntity<Item> createItemResponse = itemController.createItem(createItemRequest);
+        Item returnedItem = createItemResponse.getBody();
+
+        ModifyCartRequest modifyCartRequest2 = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), returnedItem.getId(), 1);
+        ResponseEntity<Cart> removeFromCartResponse = cartController.removeFromCart(modifyCartRequest2);
+        assertNotNull(removeFromCartResponse);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), removeFromCartResponse.getStatusCodeValue());
+    }
+
+    @Test
+    public void testAddToCartWithInvalidItem(){
+
+        CreateUserRequest createUserRequest = UserControllerTest.createUserRequest1(
+                this.username1, this.password, this.password);
+        ResponseEntity<User> response = userController.createUser(createUserRequest);
+        User createdUser = response.getBody();
+
+        CreateItemRequest createItemRequest = ItemControllerTest.createItemRequest(this.name, this.description, this.price);
+        ResponseEntity<Item> createItemResponse = itemController.createItem(createItemRequest);
+        Item returnedItem = createItemResponse.getBody();
+
+        ModifyCartRequest modifyCartRequest = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), returnedItem.getId(), 1);
+        ResponseEntity<Cart> addToCartResponse = cartController.addToCart(modifyCartRequest);
+        Cart returnedCart = addToCartResponse.getBody();
+
+        //Let's create a second item. This item will not be added to the user's cart
+        CreateItemRequest createItemRequest2 = ItemControllerTest.createItemRequest("Pen", "Plastic Pen", new BigDecimal(2.99));
+        ResponseEntity<Item> createItemResponse2 = itemController.createItem(createItemRequest2);
+        Item returnedItem2 = createItemResponse2.getBody();
+
+        //Now let's try to remove from the User's cart an item that does not exist there
+        ModifyCartRequest modifyCartRequest2 = CartControllerTest.createModifyItemRequest(createdUser.getUsername(), returnedItem2.getId(), 1);
+        ResponseEntity<Cart> removeFromCartResponse = cartController.removeFromCart(modifyCartRequest2);
+        assertNotNull(removeFromCartResponse);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), removeFromCartResponse.getStatusCodeValue());
+    }
+
 }

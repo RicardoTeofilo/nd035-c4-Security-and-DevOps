@@ -13,7 +13,6 @@ public class CreateUserRequest {
 	@JsonProperty
 	private String confirmPassword;
 
-
 	public String getUsername() {
 		return username;
 	}

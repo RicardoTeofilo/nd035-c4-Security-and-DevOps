@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -93,6 +92,19 @@ public class CartControllerTest {
         ResponseEntity<Cart> response = cartController.addToCart(modifyCartRequest);
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCodeValue());
+    }
+
+    @Test
+    public void testAddToCartWithZeroQuantity(){
+        User user = UserControllerTest.createUser(this.username1, this.password, this.userId);
+        when(userRepository.findByUsername(this.username1)).thenReturn(user);
+        Item item = ItemControllerTest.createItem(this.name, this.description, this.price);
+        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
+
+        ModifyCartRequest modifyCartRequest = createModifyItemRequest(user.getUsername(), item.getId(), 0);
+        ResponseEntity<Cart> response = cartController.addToCart(modifyCartRequest);
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCodeValue());
 
     }
 
@@ -161,15 +173,6 @@ public class CartControllerTest {
         modifyCartRequest.setItemId(itemId);
         modifyCartRequest.setQuantity(quantity);
         return modifyCartRequest;
-    }
-
-    public static Cart createCart(long userId, List<Item> items, User user, BigDecimal total){
-        Cart cart = new Cart();
-        cart.setId(userId);
-        cart.setItems(items);
-        cart.setTotal(total);
-        cart.setUser(user);
-        return cart;
     }
 
     public static Cart createCart(long userId, Item item, User user, int quantity){

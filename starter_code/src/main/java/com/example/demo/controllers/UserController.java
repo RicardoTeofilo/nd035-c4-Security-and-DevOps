@@ -46,13 +46,13 @@ public class UserController {
 		//Some validation code here for the password
 		if(StringUtils.isEmpty(createUserRequest.getPassword()) ||
 			StringUtils.isEmpty(createUserRequest.getConfirmPassword())){
-			log.error("The password and confirm password are required");
+			log.error("Create User request failed. The password and confirm password are required");
 			return ResponseEntity.badRequest().build();
 		}else if(createUserRequest.getPassword().length() < 7){
-			log.error("The password length does not meet the minimum Length requirements");
+			log.error("Create User request failed. The password length does not meet the minimum Length requirements");
 			return ResponseEntity.badRequest().build();
 		}else if(!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())){
-			log.error("Password and Confirm password don't match");
+			log.error("Create User request failed. Password and Confirm password don't match");
 			return ResponseEntity.badRequest().build();
 		}
 
@@ -65,6 +65,7 @@ public class UserController {
 
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 		User savedUser = userRepository.save(user);
+		log.info("Create User request was successful for username : " + createUserRequest.getUsername());
 		return ResponseEntity.ok(savedUser);
 	}
 	
